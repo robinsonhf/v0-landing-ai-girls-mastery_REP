@@ -61,9 +61,11 @@ function getDefaultImages() {
 
 export default function LandingPage() {
   const containerRef = useRef<HTMLDivElement>(null)
-  const [carouselImages, setCarouselImages] = useState(getDefaultImages())
+  const [carouselImages, setCarouselImages] = useState(() => getDefaultImages())
+  const [isClient, setIsClient] = useState(false)
 
   useEffect(() => {
+    setIsClient(true)
     const saved = localStorage.getItem('carouselImages')
     if (saved) {
       try {
@@ -93,7 +95,7 @@ export default function LandingPage() {
     elements.forEach((el) => observer.observe(el))
 
     return () => observer.disconnect()
-  }, [])
+  }, [carouselImages])
 
   return (
     <div ref={containerRef} className="bg-background text-foreground">
@@ -146,12 +148,11 @@ export default function LandingPage() {
               >
                 Comenzar ahora <ArrowRight size={20} />
               </a>
-              
             </div>
 
             <div className="mt-12 flex items-center gap-8">
               <div>
-                <p className="text-3xl font-bold">$19 USD     </p>
+                <p className="text-3xl font-bold">$19 USD</p>
                 <p className="text-muted-foreground">/mes</p>
               </div>
               <div>
@@ -347,7 +348,7 @@ export default function LandingPage() {
       <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-background to-secondary/30">
         <div className="max-w-6xl mx-auto">
           <div className="scroll-animate text-center mb-12">
-            <h2 className="text-4xl font-bold mb-4">Inspírate con estos estilos de contenido exclusivo en imágen y video     </h2>
+            <h2 className="text-4xl font-bold mb-4">Inspírate con estos estilos de contenido exclusivo en imágen y video</h2>
             <p className="text-lg text-muted-foreground">Diferentes tipos de posts y formatos que tú puedes crear con tu avatar</p>
           </div>
 
@@ -631,7 +632,6 @@ export default function LandingPage() {
               >
                 Únete hoy por $19/mes <ArrowRight size={20} />
               </a>
-              
             </div>
             <p className="text-sm text-muted-foreground mt-6">
               Acceso completo + Mentoría + Comunidad privada + Actualizaciones permanentes
