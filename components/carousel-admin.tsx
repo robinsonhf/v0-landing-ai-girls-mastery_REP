@@ -1,237 +1,76 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { X, Save } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import Image from 'next/image'
+import getDefaultImages from '../getDefaultImages'
 
-interface CarouselImage {
-  img: string
-  title?: string
-}
+interface CarouselItem { img: string; title?: string }
+interface CarouselGroup { title: string; items: CarouselItem[]; showTitle?: boolean }
 
-export function CarouselAdmin() {
-  const [isOpen, setIsOpen] = useState(false)
-  const [activeTab, setActiveTab] = useState<'content' | 'examples' | 'lifestyle'>('content')
-  const [images, setImages] = useState<Record<string, CarouselImage[]>>({
-    content: [],
-    examples: [],
-    lifestyle: [],
-  })
-  const [editingIndex, setEditingIndex] = useState<number | null>(null)
-  const [editingUrl, setEditingUrl] = useState('')
+export default function CarouselSection() {
+  const [carouselImages, setCarouselImages] = useState(getDefaultImages())
 
   useEffect(() => {
-    const saved = localStorage.getItem('carouselImages')
-    if (saved) {
-      setImages(JSON.parse(saved))
-    } else {
-      // Load default images
-      setImages({
-        content: [
-          {
-            img: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/imgi_105_Videos_Mujeres_7-7JrIebMxSK2o0f7FXN5V3FFCdwL6VD.jpg',
-            title: 'Contenido Fitness & Wellness',
-          },
-          {
-            img: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/imgi_7_Videos_Mujeres_2-O8Ka0w24kolANN7qcouFNd7dyG4XNF.jpg',
-            title: 'Contenido de Viajes & Lifestyle',
-          },
-          {
-            img: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/imgi_101_Videos_Mujeres_1-CCVXmOiU8ussMNhgkS3HXCMLWFcWqa.jpg',
-            title: 'Contenido Fashion & Trends',
-          },
-          {
-            img: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/imgi_22_gempages_570357700764894432-1ac3141d-3780-4ebd-a36a-185ce37058e3-bcsaZ9oR1bbCJi4ViE03L2sLw4vPyW.png',
-            title: 'Contenido Temático Premium',
-          },
-        ],
-        examples: [
-          {
-            img: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/imgi_170_gempages_570357700764894432-37a49508-3ab3-41ec-83a7-0c6367e8aedb-6iXFkZd0CsKE3wklTZxDkg2CABYJZr.png',
-            title: 'Contenido de Lifestyle',
-          },
-          {
-            img: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/imgi_167_gempages_570357700764894432-4f333a86-247c-4aa8-a38a-7c800406af41-oCLUT74ZNmzAOESq78e6UQyerqAev6.png',
-            title: 'Contenido de Moda & Viajes',
-          },
-          {
-            img: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/imgi_169_gempages_570357700764894432-c29f76b4-3ae2-4413-a00d-69c9707dbcb0-pRXYLirC9884UrpX4Ra3WIPXtkaMds.png',
-            title: 'Contenido Exclusivo Premium',
-          },
-          {
-            img: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/imgi_173_gempages_570357700764894432-1ac3141d-3780-4ebd-a36a-185ce37058e3-qOvBWmiH0WdVndZRocx83LNOqAlfvc.png',
-            title: 'Contenido Temático Variado',
-          },
-        ],
-        lifestyle: [
-          {
-            img: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/imgi_225_gempages_570357700764894432-819b0f0c-1fd2-494a-b43d-52d150c304d3-rq38UYkqaM6eBrmIEKOhMMb0fvBWOV.jpg',
-          },
-          {
-            img: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/imgi_234_gempages_570357700764894432-cfb8f8a0-df62-4dd0-b9ba-6a50991418f4-T6GpI59T0zAHSNyPKrRFhJLgJlFvsX.jpg',
-          },
-          {
-            img: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/imgi_233_gempages_570357700764894432-9c558067-c254-41bc-8a6f-0519999ce991-NDmPPplX8dI8PfPfv0lRXcdL7MI2dV.jpg',
-          },
-          {
-            img: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/imgi_100_Videos_Mujeres_3-LuKLEkSeFktPHOkkD77xPVOnMzurCj.jpg',
-          },
-        ],
-      })
-    }
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('animate-in')
+            observer.unobserve(entry.target)
+          }
+        })
+      },
+      { threshold: 0.1, rootMargin: '0px 0px -50px 0px' }
+    )
+    const elements = document.querySelectorAll('.scroll-animate')
+    elements.forEach((el) => observer.observe(el))
+    return () => observer.disconnect()
   }, [])
 
-  const handleSave = () => {
-    localStorage.setItem('carouselImages', JSON.stringify(images))
-    setEditingIndex(null)
-    window.location.reload()
-  }
-
-  const handleUrlChange = (index: number, newUrl: string) => {
-    const tabKey = activeTab === 'content' ? 'content' : activeTab === 'examples' ? 'examples' : 'lifestyle'
-    const updated = [...images[tabKey]]
-    updated[index] = { ...updated[index], img: newUrl }
-    setImages({ ...images, [tabKey]: updated })
-  }
-
-  const tabKey = activeTab === 'content' ? 'content' : activeTab === 'examples' ? 'examples' : 'lifestyle'
-  const currentImages = images[tabKey] || []
-
-  if (!isOpen) {
-    return (
-      <button
-        onClick={() => setIsOpen(true)}
-        className="fixed bottom-4 right-4 z-50 px-4 py-2 bg-primary text-primary-foreground rounded-full font-semibold hover:shadow-lg transition-shadow text-sm"
-      >
-        Editar Carruseles
-      </button>
-    )
-  }
+  const groups: CarouselGroup[] = [
+    { title: 'Genera contenido profesional', items: carouselImages.content, showTitle: true },
+    { title: 'Ejemplos de contenido que puedes crear', items: carouselImages.examples, showTitle: true },
+    { title: 'Inspírate con estos estilos de contenido', items: carouselImages.lifestyle, showTitle: false },
+  ]
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-      <div className="bg-background rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-auto">
-        <div className="sticky top-0 flex items-center justify-between p-6 border-b border-border bg-background">
-          <h2 className="text-2xl font-bold">Gestor de Imágenes de Carruseles</h2>
-          <button
-            onClick={() => setIsOpen(false)}
-            className="p-2 hover:bg-secondary rounded-lg transition-colors"
-          >
-            <X size={24} />
-          </button>
-        </div>
-
-        <div className="p-6">
-          {/* Tabs */}
-          <div className="flex gap-4 mb-6 border-b border-border pb-4">
-            {(['content', 'examples', 'lifestyle'] as const).map((tab) => (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                  activeTab === tab
-                    ? 'bg-primary text-primary-foreground'
-                    : 'bg-secondary text-foreground hover:bg-secondary/80'
-                }`}
-              >
-                {tab === 'content' && 'Contenido Profesional'}
-                {tab === 'examples' && 'Ejemplos de Contenido'}
-                {tab === 'lifestyle' && 'Lifestyle'}
-              </button>
-            ))}
-          </div>
-
-          {/* Images Grid */}
-          <div className="grid md:grid-cols-2 gap-6 mb-6">
-            {currentImages.map((item, index) => (
-              <div
-                key={index}
-                className="border border-border rounded-lg overflow-hidden hover:border-accent transition-colors"
-              >
-                <div className="relative overflow-hidden bg-secondary h-48">
-                  <img
-                    src={item.img || "/placeholder.svg"}
-                    alt={`Image ${index}`}
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                      e.currentTarget.src = '/placeholder.svg'
-                    }}
-                  />
-                </div>
-                <div className="p-4 space-y-3">
-                  {item.title && (
-                    <div>
-                      <label className="text-sm font-medium">Título</label>
-                      <p className="text-muted-foreground text-sm">{item.title}</p>
-                    </div>
-                  )}
-                  <div>
-                    <label className="text-sm font-medium block mb-2">URL de la imagen</label>
-                    {editingIndex === index ? (
-                      <textarea
-                        value={editingUrl}
-                        onChange={(e) => setEditingUrl(e.target.value)}
-                        className="w-full p-2 bg-secondary border border-border rounded text-sm font-mono resize-none h-20"
-                      />
-                    ) : (
-                      <p className="text-xs text-muted-foreground font-mono break-all line-clamp-3">
-                        {item.img}
-                      </p>
-                    )}
-                  </div>
-                  <div className="flex gap-2">
-                    {editingIndex === index ? (
-                      <>
-                        <button
-                          onClick={() => {
-                            handleUrlChange(index, editingUrl)
-                            setEditingIndex(null)
-                          }}
-                          className="flex-1 px-3 py-2 bg-accent text-accent-foreground rounded font-medium text-sm hover:shadow-lg transition-shadow"
-                        >
-                          Guardar cambios
-                        </button>
-                        <button
-                          onClick={() => setEditingIndex(null)}
-                          className="flex-1 px-3 py-2 bg-secondary text-foreground rounded font-medium text-sm hover:bg-secondary/80 transition-colors"
-                        >
-                          Cancelar
-                        </button>
-                      </>
-                    ) : (
-                      <button
-                        onClick={() => {
-                          setEditingIndex(index)
-                          setEditingUrl(item.img)
-                        }}
-                        className="w-full px-3 py-2 bg-secondary text-foreground rounded font-medium text-sm hover:bg-secondary/80 transition-colors"
-                      >
-                        Editar URL
-                      </button>
-                    )}
-                  </div>
-                </div>
+    <div className="space-y-20">
+      {groups.map((group, gIdx) => (
+        <section key={gIdx} className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-background to-secondary/30">
+          <div className="max-w-6xl mx-auto">
+            {group.showTitle && (
+              <div className="scroll-animate text-center mb-12">
+                <h2 className="text-4xl font-bold mb-4">{group.title}</h2>
+                <p className="text-lg text-muted-foreground">
+                  {group.title.includes('profesional') ? 'Mira los tipos de contenido que tus avatares pueden crear y ganar dinero con ellos' : 'Diversidad de escenarios para generar ingresos como influencer digital'}
+                </p>
               </div>
-            ))}
+            )}
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {group.items.map((item, i) => (
+                <div key={i} className="scroll-animate rounded-xl overflow-hidden bg-secondary/50 border border-border hover:border-accent transition-colors group cursor-pointer" style={{ transitionDelay: `${i * 100}ms` }}>
+                  <div className="relative overflow-hidden h-80">
+                    <Image src={item.img || '/placeholder.svg'} alt={item.title || 'Contenido'} fill className="object-cover group-hover:scale-105 transition-transform duration-300" />
+                    {item.title && (
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
+                        <p className="text-white font-semibold">{item.title}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+            {group.showTitle && (
+              <div className="mt-12 scroll-animate text-center">
+                <p className="text-lg font-semibold text-primary mb-6">{group.title.includes('profesional') ? 'Tu avatar puede crear todo esto y ganar dinero en cada plataforma' : 'Todos estos tipos de contenido puedes crearlos y monetizarlos con tu avatar digital'}</p>
+                <a href="https://whop.com/ecomx-19d4/ia-avatar-master/" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-8 py-4 bg-accent text-accent-foreground rounded-full font-semibold hover:shadow-xl transition-shadow">
+                  Aprende a crear este contenido
+                </a>
+              </div>
+            )}
           </div>
-
-          {/* Save Button */}
-          <div className="flex gap-4 pt-6 border-t border-border">
-            <button
-              onClick={handleSave}
-              className="flex-1 px-6 py-3 bg-accent text-accent-foreground rounded-lg font-semibold hover:shadow-lg transition-shadow flex items-center justify-center gap-2"
-            >
-              <Save size={20} />
-              Guardar todos los cambios
-            </button>
-            <button
-              onClick={() => setIsOpen(false)}
-              className="flex-1 px-6 py-3 bg-secondary text-foreground rounded-lg font-semibold hover:bg-secondary/80 transition-colors"
-            >
-              Cerrar
-            </button>
-          </div>
-        </div>
-      </div>
+        </section>
+      ))}
     </div>
   )
 }
